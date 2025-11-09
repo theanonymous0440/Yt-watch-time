@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zaved X - Final Boss Edition</title>
+    <style>
+        /* 
+        ========================================
+        CSS STYLES - FINAL BOSS v2
+        ========================================
+        */
+
+        :root {
+            --background-color: #000000;
+            --accent-color: #00ff41; /* Hacker Green */
+            --text-color: #c9d1d9;
+            --card-background: rgba(10, 25, 10, 0.5);
+            --border-color: rgba(0, 255, 65, 0.4);
+            --shadow-color: rgba(0, 255, 65, 0.7);
+            --font-family: 'Consolas', 'Menlo', 'Courier New', monospace;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* --- Animated Background & Overlays --- */
+        #matrix-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
+        }
+
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.4));
+            background-size: 100% 4px; z-index: 1001; animation: flicker 0.1s infinite;
+        }
+
+        @keyframes flicker {
+          0% { opacity: 0.1; } 20% { opacity: 0.3; } 40% { opacity: 0.2; }
+          60% { opacity: 0.5; } 80% { opacity: 0.2; } 100% { opacity: 0.4; }
+        }
+
+        /* --- App Name & Header --- */
+        .app-header {
+            position: relative; /* Needed for absolute positioning of the menu button */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 0;
+        }
+        .app-name {
+            text-align: center; font-size: 2.5rem; font-weight: bold;
+            color: var(--accent-color);
+            text-shadow: 0 0 5px var(--accent-color), 0 0 15px var(--shadow-color), 0 0 30px var(--shadow-color);
+            animation: text-glitch 1.5s infinite alternate;
+            margin: 0; /* Reset margin */
+        }
+        @keyframes text-glitch {
+            from { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px var(--accent-color); }
+            to { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px var(--accent-color); }
+        }
+
+        /* --- Disclaimer Screen --- */
+        #disclaimer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.95); display: flex;
+            justify-content: center; align-items: center; text-align: center;
+            z-index: 1000; padding: 20px; box-sizing: border-box;
+            transition: opacity 0.5s ease-out; backdrop-filter: blur(5px);
+        }
+        .disclaimer-content {
+            background: radial-gradient(circle, rgba(0,50,0,0.8) 0%, rgba(0,10,0,0.9) 100%);
+            padding: 30px 40px; border-radius: 0;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 0 25px var(--shadow-color), inset 0 0 15px var(--shadow-color);
+            max-width: 500px;
+        }
+        .disclaimer-content h1 { color: var(--accent-color); }
+        #disclaimer-text::after {
+            content: '_';
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+        
+        #vpn-button, #cancel-disclaimer {
+            background: transparent; border: 1px solid var(--accent-color); color: var(--accent-color);
+            text-decoration: none; font-weight: bold; font-family: var(--font-family);
+            transition: all 0.2s ease;
+        }
+        #vpn-button { padding: 12px 25px; margin-top: 20px; }
+        #vpn-button:hover, #cancel-disclaimer:hover:enabled {
+            background-color: var(--accent-color); color: var(--background-color);
+            box-shadow: 0 0 15px var(--shadow-color);
+        }
+        #cancel-disclaimer {
+            position: absolute; top: 20px; right: 20px; font-size: 1rem;
+            cursor: pointer; padding: 8px 15px;
+        }
+        #cancel-disclaimer:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* --- Main App Interface --- */
+        .app-container { padding: 0 20px 20px 20px; max-width: 1600px; margin: auto; }
+        .input-section {
+            background-color: var(--card-background); backdrop-filter: blur(10px);
+            padding: 20px; border: 1px solid var(--border-color); margin-bottom: 30px;
+            display: flex; flex-direction: column; gap: 20px;
+        }
+        #youtube-link, #custom-number {
+            width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid var(--border-color);
+            background-color: #050805; color: var(--text-color); font-size: 1rem;
+            font-family: var(--font-family);
+        }
+        #youtube-link:focus, #custom-number:focus {
+            outline: none; border-color: var(--accent-color); box-shadow: 0 0 10px var(--shadow-color);
+        }
+        #custom-number { width: 100px; text-align: center; }
+        .preset-buttons, .custom-input { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        .preset-buttons button, #load-custom {
+            padding: 10px 15px; border: 1px solid var(--accent-color); background-color: transparent;
+            color: var(--accent-color); cursor: pointer; font-weight: bold;
+            font-family: var(--font-family); transition: all 0.2s;
+        }
+        .preset-buttons button:hover, #load-custom:hover {
+            transform: translateY(-2px); background-color: var(--accent-color);
+            color: var(--background-color); box-shadow: 0 0 10px var(--shadow-color);
+        }
+        .info-note { text-align: center; font-size: 0.9em; color: #888; }
+        .info-note code { color: var(--accent-color); background: #222; padding: 2px 4px; }
+
+        /* --- Status Bar & Player Grid --- */
+        #status-bar {
+            background: var(--card-background); border: 1px solid var(--border-color);
+            padding: 10px 20px; margin-bottom: 20px; text-align: center; font-size: 1.1rem;
+            display: none;
+        }
+        #status-bar span { color: var(--accent-color); font-weight: bold; }
+        #player-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px; padding-bottom: 180px;
+        }
+        .player-card {
+            background-color: var(--background-color); border: 1px solid var(--border-color);
+            box-shadow: 0 0 10px var(--shadow-color); overflow: hidden;
+            animation: fade-in 0.5s ease-in-out; aspect-ratio: 16 / 10;
+        }
+        .player-card iframe { width: 100%; height: 100%; border: none; }
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+        /* --- Controls & Floating Buttons (Keyboard Fix) --- */
+        .controls-wrapper, #add-player { transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .controls-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .controls-wrapper {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 95%; max-width: 900px; backdrop-filter: blur(10px);
+            background-color: rgba(10, 25, 10, 0.7); padding: 15px;
+            border: 1px solid var(--border-color); box-shadow: 0 0 20px var(--shadow-color);
+            z-index: 500; display: none; flex-direction: column; gap: 15px;
+        }
+        .control-group { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+        .control-button {
+            background: transparent; border: 1px solid var(--border-color); color: var(--text-color);
+            font-family: var(--font-family); font-size: 1rem; cursor: pointer;
+            padding: 8px 15px; transition: all 0.2s;
+        }
+        .control-button:hover {
+            transform: translateY(-2px); border-color: var(--accent-color);
+            background-color: var(--accent-color); color: #000; box-shadow: 0 0 8px var(--shadow-color);
+        }
+        #add-player {
+            position: fixed; bottom: 210px; right: 20px; width: 60px; height: 60px;
+            border-radius: 50%; background-color: var(--accent-color); color: var(--background-color);
+            border: none; font-size: 2rem; display: none; justify-content: center;
+            align-items: center; box-shadow: 0 0 15px var(--shadow-color);
+            cursor: pointer; z-index: 500; transition: all 0.2s;
+        }
+        #add-player:hover { transform: scale(1.1) rotate(90deg); }
+
+        /* --- Menu Button & Dev Panel --- */
+        #menu-btn {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 25px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+        #menu-btn .bar {
+            width: 100%;
+            height: 3px;
+            background-color: var(--accent-color);
+            box-shadow: 0 0 5px var(--shadow-color);
+            transition: all 0.2s ease;
+        }
+        #menu-btn:hover .bar {
+             box-shadow: 0 0 10px var(--shadow-color);
+        }
+
+        #dev-panel {
+            position: fixed; top: 0; right: 0; width: 300px; height: 100%;
+            background-color: rgba(0, 15, 0, 0.95); backdrop-filter: blur(10px);
+            border-left: 1px solid var(--border-color); box-shadow: -5px 0 25px var(--shadow-color);
+            z-index: 1100; transform: translateX(100%); transition: transform 0.4s ease-in-out;
+            padding: 20px; box-sizing: border-box;
+        }
+        #dev-panel.open { transform: translateX(0); }
+        #dev-panel h2 { color: var(--accent-color); text-align: center; }
+        #dev-panel p { text-align: center; }
+        #dev-panel .social-links { display: flex; flex-direction: column; gap: 15px; margin-top: 30px; }
+        #dev-panel .social-links a {
+            color: var(--accent-color); border: 1px solid var(--border-color);
+            padding: 10px; text-decoration: none; text-align: center;
+            transition: all 0.2s ease;
+        }
+        #dev-panel .social-links a:hover {
+            background: var(--accent-color); color: #000; border-color: var(--accent-color);
+        }
+        #close-panel-btn {
+            position: absolute; top: 10px; right: 20px; background: none; border: none;
+            color: var(--accent-color); font-size: 2rem; cursor: pointer;
+        }
+        
+        /* --- Footer --- */
+        footer { text-align: center; padding: 40px 20px 20px 20px; color: #666; font-size: 0.9em; }
+
+        /* --- Responsive Design --- */
+        @media (min-width: 768px) { #player-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); } }
+        @media (min-width: 1200px) { #player-grid { grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); } }
+    </style>
+</head>
+<body>
+    <canvas id="matrix-bg"></canvas>
+    <div class="scanlines"></div>
+
+    <div id="disclaimer">
+        <div class="disclaimer-content">
+            <h1>> ACCESS_WARNING</h1>
+            <p id="disclaimer-text"></p>
+            <a id="vpn-button" href="https://play.google.com/store/apps/details?id=com.browsec.vpn" target="_blank" rel="noopener noreferrer">INITIATE_SECURE_TUNNEL</a>
+            <button id="cancel-disclaimer" disabled>BYPASS (5s)</button>
+        </div>
+    </div>
+
+    <div class="app-container" style="display: none;">
+        <div class="app-header">
+            <button id="menu-btn" title="Developer Mode">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </button>
+            <h1 class="app-name">> Zaved_X //</h1>
+        </div>
+
+        <div class="input-section">
+            <input type="text" id="youtube-link" placeholder="> Input YouTube Target URL (Shorts compatible)...">
+            <div class="preset-buttons">
+                <button data-count="5">x5</button> <button data-count="10">x10</button>
+                <button data-count="15">x15</button> <button data-count="20">x20</button>
+                <button data-count="25">x25</button> <button data-count="30">x30</button>
+                <button data-count="35">x35</button> <button data-count="40">x40</button>
+            </div>
+            <div class="custom-input">
+                <input type="number" id="custom-number" placeholder="Custom #" min="1">
+                <button id="load-custom">EXECUTE_LOAD</button>
+            </div>
+             <p class="info-note">Note: Some videos may fail with <code>Error 153</code>. This is set by the video creator and cannot be bypassed.</p>
+        </div>
+
+        <div id="status-bar">> Instances: <span id="video-count">0</span> | Status: <span id="video-status">Awaiting_Command</span></div>
+        <div id="player-grid"></div>
+
+        <div class="controls-wrapper">
+            <div class="control-group">
+                <button id="play-all" class="control-button">PLAY_ALL ▶️</button>
+                <button id="pause-all" class="control-button">PAUSE_ALL ⏸️</button>
+            </div>
+             <div class="control-group">
+                <button id="mute-all" class="control-button">MUTE 🔇</button>
+                <button id="unmute-all" class="control-button">UNMUTE 🔊</button>
+                <button id="rewind-all" class="control-button"><< REWIND</button>
+                <button id="forward-all" class="control-button">FORWARD >></button>
+            </div>
+             <div class="control-group">
+                <span>// Rate:</span>
+                <button class="control-button speed-btn" data-speed="0.5">0.5x</button>
+                <button class="control-button speed-btn" data-speed="1">1x</button>
+                <button class="control-button speed-btn" data-speed="1.5">1.5x</button>
+                <button class="control-button speed-btn" data-speed="2">2x</button>
+            </div>
+        </div>
+        
+        <button id="add-player" title="Deploy Additional Instance">➕</button>
+        
+        <footer>App by Zaved X hunter 🧑‍💻</footer>
+    </div>
+    
+    <div id="dev-panel">
+        <button id="close-panel-btn">&times;</button>
+        <h2>// DEV_MODE //</h2>
+        <p>App by Zaved X hunter 🧑‍💻</p>
+        <div class="social-links">
+            <a href="https://t.me/Mr_Anonmyous_11" target="_blank" rel="noopener noreferrer">Telegram Channel 🖇️</a>
+            <a href="https://www.instagram.com/mr__anonymous_11?igsh=MXZuaWVmbmZoaWhqeQ==" target="_blank" rel="noopener noreferrer">Instagram Profile 🖇️</a>
+        </div>
+    </div>
+
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+    /* 
+    ================================================
+    JAVASCRIPT LOGIC - FINAL BOSS v2
+    ================================================
+    */
+    
+    let players = [], currentVideoId = null, pauseResumeInterval = null;
+    const appContainer = document.querySelector('.app-container');
+    const playerGrid = document.getElementById('player-grid');
+    const controlsWrapper = document.querySelector('.controls-wrapper');
+    const addPlayerBtn = document.getElementById('add-player');
+    const statusBar = document.getElementById('status-bar');
+    const videoCountSpan = document.getElementById('video-count');
+    const videoStatusSpan = document.getElementById('video-status');
+    const youtubeLinkInput = document.getElementById('youtube-link');
+
+    const canvas = document.getElementById('matrix-bg');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    const alphabet = 'アァカサタナハマヤャラワガザダバパイキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const fontSize = 16, columns = canvas.width / fontSize;
+    const rainDrops = Array.from({ length: columns }).fill(1);
+    const drawMatrix = () => {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#0F0'; ctx.font = fontSize + 'px monospace';
+        rainDrops.forEach((y, ind) => {
+            const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+            ctx.fillText(text, ind * fontSize, y * fontSize);
+            if (y * fontSize > canvas.height && Math.random() > 0.975) rainDrops[ind] = 0;
+            rainDrops[ind]++;
+        });
+    };
+    setInterval(drawMatrix, 33);
+    
+    function typeWriter(element, text, speed) {
+        let i = 0;
+        function type() {
+            if (i < text.length) {
+                element.innerHTML += text.charAt(i); i++;
+                setTimeout(type, speed);
+            }
+        }
+        type();
+    }
+    
+    function onYouTubeIframeAPIReady() {
+        setupEventListeners();
+        setupDisclaimer();
+        setupMenu();
+    }
+    
+    function setupDisclaimer() {
+        const cancelBtn = document.getElementById('cancel-disclaimer');
+        const textElement = document.getElementById('disclaimer-text');
+        const disclaimerText = "// High-bandwidth operation requested. Network instability possible. Secure your connection via VPN to proceed without anomalies. //";
+        typeWriter(textElement, disclaimerText, 50);
+        setTimeout(() => { cancelBtn.disabled = false; }, 5000);
+        cancelBtn.addEventListener('click', () => {
+            document.getElementById('disclaimer').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('disclaimer').style.display = 'none';
+                appContainer.style.display = 'block';
+            }, 500);
+        });
+    }
+
+    function setupEventListeners() {
+        document.querySelector('.preset-buttons').addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') loadPlayers(parseInt(e.target.dataset.count, 10));
+        });
+        document.getElementById('load-custom').addEventListener('click', () => {
+            const count = parseInt(document.getElementById('custom-number').value, 10);
+            if (count > 0) loadPlayers(count);
+            else alert('// ERROR: Invalid instance count. Must be > 0. //');
+        });
+        document.getElementById('play-all').addEventListener('click', playAllVideos);
+        document.getElementById('pause-all').addEventListener('click', pauseAllVideos);
+        document.getElementById('mute-all').addEventListener('click', () => { players.forEach(p => p.mute()); updateStatus(players.length, 'Muted'); });
+        document.getElementById('unmute-all').addEventListener('click', () => { players.forEach(p => p.unMute()); updateStatus(players.length, 'Unmuted'); });
+        document.getElementById('rewind-all').addEventListener('click', () => seekAll(-10));
+        document.getElementById('forward-all').addEventListener('click', () => seekAll(10));
+        document.querySelectorAll('.speed-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                const speed = parseFloat(e.target.dataset.speed);
+                players.forEach(p => p.setPlaybackRate(speed));
+                updateStatus(players.length, `Rate: ${speed}x`);
+            });
+        });
+        addPlayerBtn.addEventListener('click', addSinglePlayer);
+        youtubeLinkInput.addEventListener('focus', () => {
+            controlsWrapper.classList.add('controls-hidden');
+            addPlayerBtn.classList.add('controls-hidden');
+        });
+        youtubeLinkInput.addEventListener('blur', () => {
+            controlsWrapper.classList.remove('controls-hidden');
+            addPlayerBtn.classList.remove('controls-hidden');
+        });
+    }
+
+    function setupMenu() {
+        const menuBtn = document.getElementById('menu-btn');
+        const devPanel = document.getElementById('dev-panel');
+        const closePanelBtn = document.getElementById('close-panel-btn');
+        menuBtn.addEventListener('click', () => devPanel.classList.add('open'));
+        closePanelBtn.addEventListener('click', () => devPanel.classList.remove('open'));
+    }
+    
+    function getYouTubeVideoId(url) {
+        const regex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+        return (url.match(regex) || [])[1] || null;
+    }
+
+    function loadPlayers(count) {
+        const videoId = getYouTubeVideoId(youtubeLinkInput.value);
+        if (!videoId) { alert('// ERROR: Target URL invalid. //'); return; }
+        currentVideoId = videoId;
+        playerGrid.innerHTML = ''; players.forEach(p => p.destroy()); players = [];
+        if (pauseResumeInterval) clearInterval(pauseResumeInterval);
+        for (let i = 0; i < count; i++) createPlayerInGrid(videoId);
+        if (count > 0) {
+            controlsWrapper.style.display = 'flex'; addPlayerBtn.style.display = 'flex';
+            statusBar.style.display = 'block'; updateStatus(players.length, 'Loaded');
+        }
+    }
+
+    function createPlayerInGrid(videoId) {
+        const playerCard = document.createElement('div');
+        playerCard.className = 'player-card';
+        const playerId = `player-${players.length}-${Math.random().toString(36).substring(2)}`;
+        playerCard.innerHTML = `<div id="${playerId}"></div>`;
+        playerGrid.appendChild(playerCard);
+        
+        const player = new YT.Player(playerId, {
+            height: '100%', width: '100%', videoId: videoId,
+            playerVars: { 'playsinline': 1, 'enablejsapi': 1, 'autoplay': 0, 'controls': 0, 'modestbranding': 1, 'origin': window.location.href }
+        });
+        players.push(player);
+    }
+
+    function addSinglePlayer() {
+        if (currentVideoId) {
+            createPlayerInGrid(currentVideoId);
+            updateStatus(players.length, videoStatusSpan.textContent);
+        } else { alert('// ERROR: No active video ID. Load a video first. //'); }
+    }
+
+    function playAllVideos() {
+        players.forEach(p => p.playVideo());
+        startPauseResumeCycle();
+        updateStatus(players.length, 'Executing_Playback');
+    }
+
+    function pauseAllVideos() {
+        players.forEach(p => p.pauseVideo());
+        if (pauseResumeInterval) clearInterval(pauseResumeInterval);
+        updateStatus(players.length, 'Playback_Paused');
+    }
+
+    function seekAll(seconds) { players.forEach(p => p.seekTo(p.getCurrentTime() + seconds, true)); }
+    function updateStatus(count, status) { videoCountSpan.textContent = count; videoStatusSpan.textContent = status; }
+    function startPauseResumeCycle() {
+        if (pauseResumeInterval) clearInterval(pauseResumeInterval);
+        pauseResumeInterval = setInterval(() => {
+            updateStatus(players.length, 'Cycle_Pause');
+            players.forEach(p => p.pauseVideo());
+            setTimeout(() => {
+                updateStatus(players.length, 'Executing_Playback');
+                players.forEach(p => p.playVideo());
+            }, 3000);
+        }, 60000);
+    }
+    </script>
+</body>
+</html>
